@@ -6,10 +6,16 @@
 
     <parent>
         <groupId>ai.pesco</groupId>
-        <artifactId>delivery-core</artifactId>
+        <artifactId>delivery-infrastructure</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>delivery-core-application</artifactId>
+    <artifactId>delivery-infrastructure-adapter</artifactId>
+    <packaging>pom</packaging>
 
+    <modules>
+        <module>grpc</module>
+        <module>kafka</module>
+        <module>postgres</module>
+    </modules>
 </project>

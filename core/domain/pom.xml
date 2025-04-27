@@ -10,6 +10,6 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>delivery-core-application</artifactId>
+    <artifactId>delivery-core-domain</artifactId>
 
 </project>

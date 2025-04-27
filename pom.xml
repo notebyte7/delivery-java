@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>ai.pesco</groupId>
-	<artifactId>delivery-java</artifactId>
+	<artifactId>delivery</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>delivery-java</name>
-	<description>delivery-java</description>
+	<name>delivery</name>
+	<description>delivery</description>
 	<packaging>pom</packaging>
 	<url/>
 	<licenses>

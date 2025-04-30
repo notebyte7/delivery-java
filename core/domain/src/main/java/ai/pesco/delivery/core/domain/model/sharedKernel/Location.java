@@ -1,7 +1,12 @@
-package ai.pesco.delivery.core.domain.sharedKernel;
+package ai.pesco.delivery.core.domain.model.sharedKernel;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.util.Random;
 
+@Getter
+@EqualsAndHashCode
 public class Location {
     private static final int MIN_VALUE = 1;
     private static final int MAX_VALUE = 10;
@@ -17,36 +22,14 @@ public class Location {
         setY(y);
     }
 
-    public int getX() {
-        return x;
-    }
-
     private void setX(int x) {
         checkBoundaryConditions(x);
         this.x = x;
     }
 
-    public int getY() {
-        return y;
-    }
-
     private void setY(int y) {
         checkBoundaryConditions(y);
         this.y = y;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        Location location = (Location) o;
-        return x == location.x && y == location.y;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = x;
-        result = 31 * result + y;
-        return result;
     }
 
     private void checkBoundaryConditions(int value) {

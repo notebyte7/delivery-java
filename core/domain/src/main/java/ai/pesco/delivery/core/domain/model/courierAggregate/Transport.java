@@ -11,6 +11,8 @@ import static java.lang.Math.clamp;
 @Getter
 @EqualsAndHashCode(of = "id")
 public class Transport {
+    public static final int MIN_SPEED = 1;
+    public static final int MAX_SPEED = 3;
     private final UUID id;
     private String name;
     private int speed;
@@ -41,7 +43,7 @@ public class Transport {
     }
 
     private void checkSpeed(int speed) {
-        if (speed < 1 || speed > 3) {
+        if (speed < MIN_SPEED || speed > MAX_SPEED) {
             throw new IllegalArgumentException("Speed must be between 1 and 3");
         }
     }

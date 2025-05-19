@@ -1,5 +1,6 @@
-package ai.pesco.delivery.core.domain.sharedKernel;
+package ai.pesco.delivery.core.domain.model.sharedKernel;
 
+import ai.pesco.delivery.core.domain.model.sharedKernel.Location;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

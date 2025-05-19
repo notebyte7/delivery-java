@@ -28,39 +28,34 @@ class TransportTest {
         assertEquals(validSpeed, transport.getSpeed());
     }
 
-    @Test
-    void constructor_NullName_ThrowsIllegalArgumentException() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> new Transport(null, validSpeed));
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" ", "\t", "\n"})
+    void constructor_InvalidName_ThrowsIllegalArgumentException(String invalidName) {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> new Transport(invalidName, validSpeed));
         assertEquals("Name cannot be null or empty", exception.getMessage());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, -1, 4, 10})
+    void constructor_InvalidSpeed_ThrowsIllegalArgumentException(int invalidSpeed) {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> new Transport(validName, invalidSpeed));
+        assertEquals("Speed must be between 1 and 3", exception.getMessage());
     }
 
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = {" ", "\t", "\n"})
-    void setName_NullOrBlankName_ThrowsIllegalArgumentException(String invalidName) {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> transport.setName(invalidName));
+    void rename_InvalidName_ThrowsIllegalArgumentException(String invalidName) {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> transport.rename(invalidName));
         assertEquals("Name cannot be null or empty", exception.getMessage());
     }
 
     @Test
-    void setName_ValidName_UpdatesName() {
+    void rename_ValidName_UpdatesName() {
         String newName = "Bike";
-        transport.setName(newName);
-        assertEquals(newName, transport.getName());
-    }
-
-    @ParameterizedTest
-    @ValueSource(ints = {0, -1, 4, 10})
-    void setSpeed_InvalidSpeed_ThrowsIllegalArgumentException(int invalidSpeed) {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> transport.setSpeed(invalidSpeed));
-        assertEquals("Speed must be between 1 and 3", exception.getMessage());
-    }
-
-    @ParameterizedTest
-    @ValueSource(ints = {1, 2, 3})
-    void setSpeed_ValidSpeed_UpdatesSpeed(int validSpeed) {
-        transport.setSpeed(validSpeed);
-        assertEquals(validSpeed, transport.getSpeed());
+        transport.rename(newName);
+        assertEquals(newName.trim(), transport.getName());
     }
 
     @Test
@@ -80,16 +75,15 @@ class TransportTest {
     @Test
     void move_WithinSpeedRange_ReturnsNewLocation() {
         Location current = new Location(1, 1);
-        Location target = new Location(5, 3);
+        Location target = new Location(2, 3);
         Location newLocation = transport.move(current, target);
 
-        assertEquals(3, newLocation.getX());
-        assertEquals(1, newLocation.getY());
+        assertEquals(2, newLocation.getX());
+        assertEquals(2, newLocation.getY());
     }
 
     @Test
     void move_ExceedsSpeedRange_ClampsMovement() {
-        transport.setSpeed(2);
         Location current = new Location(1, 1);
         Location target = new Location(5, 5);
         Location newLocation = transport.move(current, target);

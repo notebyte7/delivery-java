@@ -15,24 +15,14 @@ public class Transport {
     public static final int MAX_SPEED = 3;
     private final UUID id;
     private String name;
-    private int speed;
+    private final int speed;
 
     public Transport(String name, int speed) {
         checkName(name);
         checkSpeed(speed);
 
         this.id = UUID.randomUUID();
-        setName(name);
-        setSpeed(speed);
-    }
-
-    public void setName(String name) {
-        checkName(name);
         this.name = name;
-    }
-
-    public void setSpeed(int speed) {
-        checkSpeed(speed);
         this.speed = speed;
     }
 
@@ -40,6 +30,11 @@ public class Transport {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Name cannot be null or empty");
         }
+    }
+
+    public void rename(String name) {
+        checkName(name);
+        this.name = name.trim();
     }
 
     private void checkSpeed(int speed) {

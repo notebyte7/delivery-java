@@ -51,7 +51,7 @@ public class Courier {
         checkLocation(destination);
 
         Location move = transport.move(location, destination);
-        return Math.abs(move.getX()) + Math.abs(move.getY());
+        return Math.abs(destination.getX() - location.getX()) + Math.abs(destination.getY() - location.getY());
     }
 
     public void moveTo(Location destination) {

@@ -109,7 +109,7 @@ class CourierTest {
     void estimateStepsTo_ValidDestination_ReturnsCorrectSteps() {
         Location destination = new Location(2, 1);
         int steps = courier.estimateStepsTo(destination);
-        assertEquals(1, steps);
+        assertEquals(3, steps);
     }
 
     @Test

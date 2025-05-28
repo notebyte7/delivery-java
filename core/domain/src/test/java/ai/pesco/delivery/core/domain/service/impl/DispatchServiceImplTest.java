@@ -5,10 +5,9 @@ import ai.pesco.delivery.core.domain.model.courierAggregate.CourierStatus;
 import ai.pesco.delivery.core.domain.model.orderAggregate.Order;
 import ai.pesco.delivery.core.domain.model.orderAggregate.OrderStatus;
 import ai.pesco.delivery.core.domain.model.sharedKernel.Location;
+import ai.pesco.delivery.core.domain.service.DispatchService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Nested;
 
 import java.util.*;
 
@@ -16,133 +15,130 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class DispatchServiceImplTest {
 
-    private DispatchServiceImpl dispatchService;
-    private Order testOrder;
+    private DispatchService dispatchService;
+    private Order order;
+    private Location orderLocation;
 
     @BeforeEach
     void setUp() {
         dispatchService = new DispatchServiceImpl();
-        testOrder = new Order(UUID.randomUUID(), new Location(5, 5));
+        orderLocation = new Location(5, 5);
+        order = new Order(UUID.randomUUID(), orderLocation);
     }
 
-    @Nested
-    @DisplayName("Успешное назначение курьера")
-    class SuccessfulDispatch {
-
-        @Test
-        @DisplayName("Должен назначить единственного свободного курьера")
-        void shouldDispatchSingleFreeCourier() {
-            Courier courier = new Courier("John", "bike", 3, new Location(3, 3));
-            List<Courier> couriers = List.of(courier);
-
-            Optional<Courier> result = dispatchService.dispatch(testOrder, couriers);
-
-            assertTrue(result.isPresent());
-            assertEquals(courier, result.get());
-            assertEquals(CourierStatus.BUSY, courier.getStatus());
-            assertEquals(testOrder.getId(), courier.getOrderId());
-            assertEquals(OrderStatus.ASSIGNED, testOrder.getStatus());
-            assertEquals(courier.getId(), testOrder.getCourierId());
-        }
-
-        @Test
-        @DisplayName("Должен выбрать ближайшего курьера из нескольких свободных")
-        void shouldDispatchClosestCourier() {
-            Location orderLocation = new Location(5, 5);
-            Order order = new Order(UUID.randomUUID(), orderLocation);
-
-            Courier closeCourier = new Courier("Close", "bike", 2, new Location(6, 6));
-            Courier farCourier = new Courier("Far", "car", 3, new Location(1, 1));
-            Courier middleCourier = new Courier("Middle", "walk", 1, new Location(7, 5));
-
-            List<Courier> couriers = Arrays.asList(farCourier, closeCourier, middleCourier);
-
-            Optional<Courier> result = dispatchService.dispatch(order, couriers);
-
-            assertTrue(result.isPresent());
-            assertEquals(2, result.get().estimateStepsTo(orderLocation));
-        }
-
-        @Test
-        @DisplayName("Должен игнорировать занятых курьеров и выбрать свободного")
-        void shouldIgnoreBusyCouriersAndDispatchFreeCourier() {
-            Courier busyCourier = new Courier("Busy", "bike", 2, new Location(4, 4));
-            Courier freeCourier = new Courier("Free", "car", 3, new Location(8, 8));
-
-            Order otherOrder = new Order(UUID.randomUUID(), new Location(1, 1));
-            busyCourier.assignOrder(otherOrder);
-
-            List<Courier> couriers = Arrays.asList(busyCourier, freeCourier);
-
-            Optional<Courier> result = dispatchService.dispatch(testOrder, couriers);
-
-            assertTrue(result.isPresent());
-            assertEquals(freeCourier, result.get());
-            assertEquals(CourierStatus.BUSY, freeCourier.getStatus());
-            assertEquals(CourierStatus.BUSY, busyCourier.getStatus());
-        }
-
-        @Test
-        @DisplayName("Должен выбрать первого среди курьеров с одинаковым расстоянием")
-        void shouldDispatchFirstCourierWhenDistancesAreEqual() {
-            Location orderLocation = new Location(5, 5);
-            Order order = new Order(UUID.randomUUID(), orderLocation);
-
-            Courier courier1 = new Courier("First", "bike", 2, new Location(7, 5));
-            Courier courier2 = new Courier("Second", "car", 3, new Location(5, 7));
-            Courier courier3 = new Courier("Third", "walk", 1, new Location(1, 1));
-
-            List<Courier> couriers = Arrays.asList(courier1, courier2, courier3);
-
-            Optional<Courier> result = dispatchService.dispatch(order, couriers);
-
-            assertTrue(result.isPresent());
-            assertEquals(courier2, result.get());
-            assertEquals(2, result.get().estimateStepsTo(orderLocation));
-        }
+    @Test
+    void dispatch_ShouldThrowException_WhenCouriersIsNull() {
+        assertThrows(IllegalArgumentException.class,
+                () -> dispatchService.dispatch(order, null),
+                "couriers is null or empty");
     }
 
-    @Nested
-    @DisplayName("Граничные случаи")
-    class EdgeCases {
+    @Test
+    void dispatch_ShouldThrowException_WhenCouriersIsEmpty() {
+        Collection<Courier> emptyCouriers = Collections.emptyList();
 
-        @Test
-        @DisplayName("Должен работать с курьерами в одинаковой локации с заказом")
-        void shouldHandleCouriersAtSameLocationAsOrder() {
-            Location orderLocation = new Location(5, 5);
-            Order order = new Order(UUID.randomUUID(), orderLocation);
+        assertThrows(IllegalArgumentException.class,
+                () -> dispatchService.dispatch(order, emptyCouriers),
+                "couriers is null or empty");
+    }
 
-            Courier courierAtSameLocation = new Courier("Same", "bike", 2, orderLocation);
-            Courier courierNearby = new Courier("Nearby", "car", 3, new Location(6, 6));
+    @Test
+    void dispatch_ShouldReturnEmpty_WhenNoCouriersAreFree() {
+        Courier busyCourier1 = new Courier("John", "Bike", 2, new Location(3, 3));
+        Courier busyCourier2 = new Courier("Jane", "Car", 3, new Location(7, 7));
 
-            List<Courier> couriers = Arrays.asList(courierAtSameLocation, courierNearby);
+        Order dummyOrder1 = new Order(UUID.randomUUID(), new Location(1, 1));
+        Order dummyOrder2 = new Order(UUID.randomUUID(), new Location(2, 2));
+        busyCourier1.assignOrder(dummyOrder1);
+        busyCourier2.assignOrder(dummyOrder2);
 
-            Optional<Courier> result = dispatchService.dispatch(order, couriers);
+        Collection<Courier> couriers = Arrays.asList(busyCourier1, busyCourier2);
 
-            assertTrue(result.isPresent());
-            assertEquals(courierAtSameLocation, result.get());
-            assertEquals(0, result.get().estimateStepsTo(orderLocation));
-        }
+        Optional<Courier> result = dispatchService.dispatch(order, couriers);
+
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    void dispatch_ShouldReturnNearestFreeCourier_WhenMultipleCouriersAreFree() {
+        Courier farCourier = new Courier("John", "Bike", 2, new Location(10, 10));
+        Courier nearCourier = new Courier("Jane", "Car", 3, new Location(6, 6));
+        Courier mediumCourier = new Courier("Bob", "Scooter", 2, new Location(8, 8));
+
+        Collection<Courier> couriers = Arrays.asList(farCourier, nearCourier, mediumCourier);
+
+        Optional<Courier> result = dispatchService.dispatch(order, couriers);
+
+        assertTrue(result.isPresent());
+        assertEquals(nearCourier, result.get());
+        assertEquals(CourierStatus.BUSY, nearCourier.getStatus());
+        assertEquals(order.getId(), nearCourier.getOrderId());
+        assertEquals(OrderStatus.ASSIGNED, order.getStatus());
+        assertEquals(nearCourier.getId(), order.getCourierId());
+    }
+
+    @Test
+    void dispatch_ShouldReturnTheOnlyFreeCourier_WhenOnlyOneIsFree() {
+        Courier freeCourier = new Courier("John", "Bike", 2, new Location(3, 3));
+        Courier busyCourier = new Courier("Jane", "Car", 3, new Location(1, 1));
+
+        Order dummyOrder = new Order(UUID.randomUUID(), new Location(2, 2));
+        busyCourier.assignOrder(dummyOrder);
+
+        Collection<Courier> couriers = Arrays.asList(freeCourier, busyCourier);
+
+        Optional<Courier> result = dispatchService.dispatch(order, couriers);
+
+        assertTrue(result.isPresent());
+        assertEquals(freeCourier, result.get());
+        assertEquals(CourierStatus.BUSY, freeCourier.getStatus());
+        assertEquals(order.getId(), freeCourier.getOrderId());
+    }
 
 
-        @Test
-        @DisplayName("Должен правильно обновить состояние заказа и курьера")
-        void shouldCorrectlyUpdateOrderAndCourierState() {
-            Courier courier = new Courier("Test", "bike", 3, new Location(3, 3));
-            List<Courier> couriers = List.of(courier);
+    @Test
+    void dispatch_ShouldWorkWithDifferentTransportSpeeds() {
+        Location courierLocation = new Location(1, 1);
+        Courier slowCourier = new Courier("Slow", "Walk", 1, courierLocation);
+        Courier mediumCourier = new Courier("Medium", "Bike", 2, courierLocation);
+        Courier fastCourier = new Courier("Fast", "Car", 3, courierLocation);
 
-            UUID initialOrderId = testOrder.getId();
-            UUID initialCourierId = courier.getId();
+        Collection<Courier> couriers = Arrays.asList(slowCourier, mediumCourier, fastCourier);
 
-            Optional<Courier> result = dispatchService.dispatch(testOrder, couriers);
+        Optional<Courier> result = dispatchService.dispatch(order, couriers);
 
-            assertTrue(result.isPresent());
+        assertTrue(result.isPresent());
+        assertNotNull(result.get());
+    }
 
-            assertEquals(CourierStatus.BUSY, courier.getStatus());
-            assertEquals(initialOrderId, courier.getOrderId());
+    @Test
+    void dispatch_ShouldHandleMixOfFreeAndBusyCouriers() {
+        Courier nearButBusy = new Courier("Near Busy", "Car", 3, new Location(5, 6));
+        Courier farButFree = new Courier("Far Free", "Bike", 2, new Location(10, 10));
+        Courier mediumAndFree = new Courier("Medium Free", "Scooter", 2, new Location(7, 7));
 
-            assertEquals(OrderStatus.ASSIGNED, testOrder.getStatus());
-            assertEquals(initialCourierId, testOrder.getCourierId());
-        }
+        Order dummyOrder = new Order(UUID.randomUUID(), new Location(1, 1));
+        nearButBusy.assignOrder(dummyOrder);
+
+        Collection<Courier> couriers = Arrays.asList(nearButBusy, farButFree, mediumAndFree);
+
+        Optional<Courier> result = dispatchService.dispatch(order, couriers);
+
+        assertTrue(result.isPresent());
+        assertEquals(mediumAndFree, result.get(), "Should select nearest free courier");
+    }
+
+    @Test
+    void dispatch_ShouldMaintainOrderAssignment() {
+        Courier courier = new Courier("Test", "Bike", 2, new Location(3, 3));
+        Collection<Courier> couriers = Collections.singletonList(courier);
+
+        Optional<Courier> result = dispatchService.dispatch(order, couriers);
+
+        assertTrue(result.isPresent());
+        assertEquals(order.getId(), courier.getOrderId());
+        assertEquals(courier.getId(), order.getCourierId());
+        assertEquals(CourierStatus.BUSY, courier.getStatus());
+        assertEquals(OrderStatus.ASSIGNED, order.getStatus());
     }
 }

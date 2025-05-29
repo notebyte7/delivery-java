@@ -49,7 +49,6 @@ public class Courier {
 
     public int estimateStepsTo(Location destination) {
         checkLocation(destination);
-
         Location move = transport.move(location, destination);
         return Math.abs(move.getX()) + Math.abs(move.getY());
     }

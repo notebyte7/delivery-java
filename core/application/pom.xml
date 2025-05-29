@@ -11,5 +11,13 @@
     </parent>
 
     <artifactId>delivery-core-application</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>ai.pesco</groupId>
+            <artifactId>delivery-core-domain</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
 </project>

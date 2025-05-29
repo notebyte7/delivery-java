@@ -1,5 +1,6 @@
 package ai.pesco.delivery.core.domain.model.orderAggregate;
 
+import ai.pesco.delivery.core.domain.model.Aggregate;
 import ai.pesco.delivery.core.domain.model.courierAggregate.Courier;
 import ai.pesco.delivery.core.domain.model.sharedKernel.Location;
 import lombok.EqualsAndHashCode;
@@ -8,9 +9,7 @@ import lombok.Getter;
 import java.util.UUID;
 
 @Getter
-@EqualsAndHashCode(of = "id")
-public class Order {
-    private final UUID id;
+public class Order extends Aggregate<UUID> {
     private Location location;
     private OrderStatus status;
     private UUID courierId;
@@ -19,7 +18,7 @@ public class Order {
         checkId(id);
         checkLocation(location);
 
-        this.id = id;
+        super.id = id;
         this.location = location;
         status = OrderStatus.CREATED;
     }

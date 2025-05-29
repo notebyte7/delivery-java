@@ -1,5 +1,6 @@
 package ai.pesco.delivery.core.domain.model.courierAggregate;
 
+import ai.pesco.delivery.core.domain.model.Entity;
 import ai.pesco.delivery.core.domain.model.sharedKernel.Location;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -9,11 +10,9 @@ import java.util.UUID;
 import static java.lang.Math.clamp;
 
 @Getter
-@EqualsAndHashCode(of = "id")
-public class Transport {
+public class Transport extends Entity<UUID> {
     public static final int MIN_SPEED = 1;
     public static final int MAX_SPEED = 3;
-    private final UUID id;
     private String name;
     private final int speed;
 
@@ -21,7 +20,7 @@ public class Transport {
         checkName(name);
         checkSpeed(speed);
 
-        this.id = UUID.randomUUID();
+        super.id = UUID.randomUUID();
         this.name = name;
         this.speed = speed;
     }

@@ -1,35 +1,34 @@
 package ai.pesco.delivery.core.domain.model.courierAggregate;
 
+import ai.pesco.delivery.core.domain.model.Aggregate;
 import ai.pesco.delivery.core.domain.model.orderAggregate.Order;
 import ai.pesco.delivery.core.domain.model.sharedKernel.Location;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import java.util.UUID;
 
 @Getter
-@EqualsAndHashCode(of = "id")
-public class Courier {
-    private final UUID id;
+public class Courier extends Aggregate<UUID> {
     private String name;
     private Transport transport;
     private Location location;
     private CourierStatus status;
     private UUID orderId;
 
-    public Courier(String name, String transportName, int transportSpeed, Location location) {
-        checkName(name);
+    public Courier(String name, Transport transport, Location location) {
         checkLocation(location);
 
-        id = UUID.randomUUID();
+        super.id = UUID.randomUUID();
         this.name = name;
         this.location = location;
-        transport = new Transport(transportName, transportSpeed);
+        this.transport = transport;
         status = CourierStatus.FREE;
     }
 
     public void assignOrder(Order order) {
-        checkOrder(order);
+       if (order == null) {
+           throw new IllegalArgumentException("order is null");
+       }
         if (status != CourierStatus.FREE) {
             throw new IllegalStateException("Cannot assign order to a not free courier");
         }
@@ -58,14 +57,7 @@ public class Courier {
         location = transport.move(location, destination);
     }
 
-    private void checkName(String name) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Name cannot be null or empty");
-        }
-    }
-
     public void rename(String name) {
-        checkName(name);
         this.name = name;
     }
 

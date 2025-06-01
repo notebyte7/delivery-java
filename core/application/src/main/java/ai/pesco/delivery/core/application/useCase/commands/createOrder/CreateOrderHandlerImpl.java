@@ -1,14 +1,17 @@
 package ai.pesco.delivery.core.application.useCase.commands.createOrder;
 
+import ai.pesco.delivery.core.application.port.GetLocationPort;
 import ai.pesco.delivery.core.application.port.repository.domain.OrderRepositoryPort;
 import ai.pesco.delivery.core.domain.model.orderAggregate.Order;
 import ai.pesco.delivery.core.domain.model.sharedKernel.Location;
 
 public class CreateOrderHandlerImpl implements CreateOrderHandler {
     private final OrderRepositoryPort orderRepository;
+    private final GetLocationPort locationPort;
 
-    public CreateOrderHandlerImpl(OrderRepositoryPort orderRepository) {
+    public CreateOrderHandlerImpl(OrderRepositoryPort orderRepository, GetLocationPort locationPort) {
         this.orderRepository = orderRepository;
+        this.locationPort = locationPort;
     }
 
     @Override
@@ -18,7 +21,7 @@ public class CreateOrderHandlerImpl implements CreateOrderHandler {
             throw new RuntimeException(String.format("Order with id %s already exists", command.basketId()));
         }
 
-        Order order = new Order(command.basketId(), Location.random());
+        Order order = new Order(command.basketId(),  locationPort.getFromStreet(command.street()));
         orderRepository.add(order);
     }
 }

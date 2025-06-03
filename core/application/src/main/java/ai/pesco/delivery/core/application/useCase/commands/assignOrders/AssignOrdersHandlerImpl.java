@@ -30,13 +30,16 @@ public class AssignOrdersHandlerImpl implements AssignOrdersHandler {
     public void handle() {
         unitOfWork.executeInTransaction(() -> {
             Order order = orderRepositoryPort.findAnyWithCreatedStatus();
-            Collection<Courier> availableCouriers = courierRepositoryPort.findAllWithFreeStatus();
-            Optional<Courier> designatedCourier = dispatchService.dispatch(order, availableCouriers);
+            if (order != null) {
+                Collection<Courier> availableCouriers = courierRepositoryPort.findAllWithFreeStatus();
+                Optional<Courier> designatedCourier = dispatchService.dispatch(order, availableCouriers);
 
-            if (designatedCourier != null) {
-                courierRepositoryPort.update(designatedCourier);
-                orderRepositoryPort.update(order);
+                if (designatedCourier != null) {
+                    courierRepositoryPort.update(designatedCourier);
+                    orderRepositoryPort.update(order);
+                }
             }
         });
     }
 }
+

@@ -15,5 +15,6 @@
     <modules>
         <module>http</module>
         <module>kafka</module>
+        <module>scheduler</module>
     </modules>
 </project>
